@@ -1,82 +1,77 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Modell Viewer</title>
+  <meta charset="UTF-8" />
+  <title>AR 3D Objekt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- model-viewer -->
+  <script type="module"
+    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+  </script>
+
   <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
+    body {
+      margin: 0;
+      background: #000;
+      font-family: sans-serif;
+    }
+
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .hint {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-size: 14px;
+      opacity: 0.85;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.164.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/controls/OrbitControls.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/loaders/GLTFLoader.js';
 
-    // Szene, Kamera, Renderer
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
+  <model-viewer
+    src="model.glb"             <!-- DEIN 3D-MODELL -->
+    ar
+    ar-modes="scene-viewer webxr quick-look"
+    camera-controls
+    touch-action="pan-y"
+    auto-rotate
+    animation-name="*"
+    autoplay
+    shadow-intensity="1"
+    exposure="1"
+    scale="1 1 1"
+    placement="floor"
+    alt="3D Objekt in Augmented Reality">
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.5, 3);
+    <!-- AR Button -->
+    <button slot="ar-button"
+      style="
+        position: absolute;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 18px;
+        background: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;">
+      📱 In AR anzeigen
+    </button>
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+  </model-viewer>
 
-    // Licht
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
+  <div class="hint">
+    Mit einem Finger drehen • Zwei Finger zoomen • In AR frei platzieren
+  </div>
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 10, 7.5);
-    scene.add(directionalLight);
-
-    // OrbitControls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 1;
-    controls.maxDistance = 10;
-    controls.maxPolarAngle = Math.PI / 2;
-
-    // Modell laden
-    const loader = new GLTFLoader();
-    loader.load(
-      'jwa_rebirth_tyrannosaurus_rex.glb', // Hier dein Modelllink
-      function(gltf) {
-        const model = gltf.scene;
-        model.scale.set(2,2,2); // Größe anpassen
-        scene.add(model);
-      },
-      undefined,
-      function(error) {
-        console.error(error);
-      }
-    );
-
-    // Resize
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Animation
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // Automatisches Öffnen im neuen Tab
-    window.onload = () => {
-      window.open(window.location.href, '_blank');
-    };
-  </script>
 </body>
 </html>
