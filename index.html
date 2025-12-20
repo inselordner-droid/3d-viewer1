@@ -1,30 +1,21 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>AR 3D Objekt</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- model-viewer -->
-  <script type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
+  <meta charset="UTF-8">
+  <title>WebXR AR Objekt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
-      background: #000;
+      overflow: hidden;
       font-family: sans-serif;
+      background: #000;
     }
 
-    model-viewer {
-      width: 100vw;
-      height: 100vh;
-    }
-
-    .hint {
+    #info {
       position: absolute;
-      bottom: 20px;
+      bottom: 10px;
       width: 100%;
       text-align: center;
       color: white;
@@ -36,42 +27,10 @@
 </head>
 <body>
 
-  <model-viewer
-    src="model.glb"             <!-- DEIN 3D-MODELL -->
-    ar
-    ar-modes="scene-viewer webxr quick-look"
-    camera-controls
-    touch-action="pan-y"
-    auto-rotate
-    animation-name="*"
-    autoplay
-    shadow-intensity="1"
-    exposure="1"
-    scale="1 1 1"
-    placement="floor"
-    alt="3D Objekt in Augmented Reality">
-
-    <!-- AR Button -->
-    <button slot="ar-button"
-      style="
-        position: absolute;
-        bottom: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 12px 18px;
-        background: white;
-        border: none;
-        border-radius: 20px;
-        font-size: 14px;
-        cursor: pointer;">
-      📱 In AR anzeigen
-    </button>
-
-  </model-viewer>
-
-  <div class="hint">
-    Mit einem Finger drehen • Zwei Finger zoomen • In AR frei platzieren
+  <div id="info">
+    Tippen: Objekt platzieren · Ziehen: drehen · Pinch: zoomen
   </div>
 
+  <script type="module" src="main.js"></script>
 </body>
 </html>
