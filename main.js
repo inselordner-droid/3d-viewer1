@@ -46,7 +46,7 @@ function init() {
 
   // Modell laden
   const loader = new GLTFLoader();
-  loader.load('model.glb', (gltf) => {
+  loader.load('jwa_rebirth_tyrannosaurus_rex.glb', (gltf) => {
     model = gltf.scene;
     model.scale.set(0.3, 0.3, 0.3);
   });
