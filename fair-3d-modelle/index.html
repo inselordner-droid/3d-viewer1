@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FAIR - 3D Modelle</title>
+<link rel="stylesheet" href="assets/museum.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FAIR - 3D Modelle">
+<meta name="theme-color" content="#1d1d1f">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<link rel="icon" href="assets/icons/favicon.png">
+</head>
+<body data-mode="menu" data-nav="walk" class="gallery">
+
+<div id="viewport"></div>
+
+<!-- Besucher-HUD -->
+<div id="crosshair"></div>
+<svg id="gaze" viewBox="0 0 40 40" hidden><circle class="bg" cx="20" cy="20" r="15.9"/><circle class="fg" cx="20" cy="20" r="15.9" pathLength="100"/></svg>
+<div id="hint" hidden></div>
+<canvas id="minimap" title="Karte (M) – Klick vergrößert, im großen Plan: Klick = dorthin springen"></canvas>
+<div id="visitBar" class="bar">
+  <span class="exTitle"></span>
+  <button id="tbMap" title="Übersichtskarte (M)">▦ Karte</button>
+  <button id="tbRooms" title="Schnellnavigation zu einem Raum">☰ Räume</button>
+  <button id="tbHome" title="Zurück zum Eingang (H)">⌂ Eingang</button>
+  <button id="tbWhere" title="Wo bin ich?">◎ Position</button>
+  <button id="tbNav" title="Steuerung wechseln: WASD+Maus ↔ Maus-Modus (Tab)"><span class="navWalk">⌨ WASD</span><span class="navPoint">🖱 Maus</span></button>
+  <button id="tbMute" title="Ton an/aus (U)">🔊</button>
+  <button id="tbVR" hidden title="Mit VR-Headset betreten">VR</button>
+  <button id="tbEdit" title="Bearbeitungsmodus (B)">✎ Bearbeiten</button>
+  <button id="tbTour" title="Geführter Rundgang: von Exponat zu Exponat, mit Vorlesen">▷ Rundgang</button>
+  <button id="tbMenu" title="Hauptmenü">≡ Menü</button>
+  <span id="fps" hidden></span>
+</div>
+<button id="goBtn" title="Gedrückt halten: zum Zielpunkt gehen (Taste X)">🚶 Gehen</button>
+<div id="tourBar" hidden><span id="tourText"></span><button id="tourPrev">◀</button><button id="tourSpeak" title="Vorlesen an/aus">🔈</button><button id="tourNext">▶</button><button id="tourEnd">✕</button></div>
+<div id="onboard" hidden></div>
+<div id="roomMenu" hidden></div>
+<div id="helpLine">
+  <span class="navWalk"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> gehen · Maus schauen · <kbd>⇧</kbd> schneller · <kbd>E</kbd>/Klick ansehen · <kbd>X</kbd> zum Zielpunkt · <kbd>Esc</kbd> Maus frei</span>
+  <span class="navPoint">Ziehen = umsehen · Klick auf den Boden = hingehen · Klick auf Objekt = ansehen</span>
+  <span class="navTouch">Ziehen = umsehen · Tippen auf den Boden = hingehen · Joystick = gehen · Tippen auf Objekt = ansehen</span>
+</div>
+
+<div id="pause" hidden>
+  <div class="pauseBox">
+    <div class="big">Klicken, um weiterzugehen</div>
+    <div class="muted">WASD gehen · Maus umsehen · Leertaste springen · Esc gibt die Maus frei</div>
+    <div class="btnrow"><button class="btn" id="pauseMouse">Lieber mit der Maus navigieren</button><button class="btn" id="pauseMenu">Hauptmenü</button></div>
+  </div>
+</div>
+
+<!-- Video-Steuerung -->
+<div id="videoCtl" hidden>
+  <div class="vcTop"><b id="vcTitle"></b><button id="vcClose" class="x" title="Schließen (Esc)">✕</button></div>
+  <div class="vcRow">
+    <button id="vcPlay" title="Abspielen / Pause">▶</button>
+    <button id="vcRestart" title="Von vorne">⟲</button>
+    <input id="vcSeek" type="range" min="0" max="1000" value="0" title="Fortschritt">
+    <span id="vcTime">0:00 / 0:00</span>
+    <button id="vcMute" title="Stumm">🔊</button>
+    <input id="vcVol" type="range" min="0" max="1" step="0.05" value="1" title="Lautstärke">
+    <button id="vcFull" title="Vollbild">⛶</button>
+  </div>
+  <div id="vcNote" class="muted small"></div>
+</div>
+<div id="videoFs" hidden></div>
+
+<aside id="detail" hidden></aside>
+<div id="labelView" hidden></div>
+
+<!-- Editor -->
+<div id="editorTop" class="bar">
+  <span class="exTitle"></span>
+  <div id="edToolbar"></div>
+  <button id="edAddLabel" title="Texttafel hinzufügen">¶ Tafel</button>
+  <button id="edImport" title="Dateien importieren">＋ Import</button>
+  <button id="edSave" class="primary" title="Speichern (⌘/Strg+S)">Speichern</button>
+  <button id="edVisit" title="Zum Besuchermodus (B)">▶ Besuchen</button>
+</div>
+<aside id="editor">
+  <div id="edTabs">
+    <button data-tab="library" class="on">Dateien</button>
+    <button data-tab="scene">Szene</button>
+    <button data-tab="rooms">Bauen</button>
+    <button data-tab="settings">Galerie</button>
+  </div>
+  <div class="edPane" data-pane="library"></div>
+  <div class="edPane" data-pane="scene" hidden></div>
+  <div class="edPane" data-pane="rooms" hidden></div>
+  <div class="edPane" data-pane="settings" hidden></div>
+</aside>
+<aside id="inspector" hidden></aside>
+<div id="edHelp">Objekt <b>ziehen</b> = verschieben · <kbd>,</kbd><kbd>.</kbd> drehen · Klick = auswählen · Doppelklick = Einheit · Leere Fläche ziehen = Ansicht drehen · Rechte Maus = schieben · <kbd>T</kbd> Draufsicht · <kbd>Entf</kbd> löschen</div>
+
+<!-- Hauptmenü -->
+<div id="menu" hidden>
+  <div class="menuCard">
+    <section class="page" data-page="main">
+      <div class="brand"><span class="mark">✦</span><div><h1>Digitales Museum</h1><div class="muted">3D-Scans, Videos und Texte – begehbar, gestaltbar, speicherbar</div></div></div>
+      <div class="cur"><div class="muted small">Aktuelle Galerie</div><div id="curExName" class="curName"></div><div id="curExMeta" class="muted small"></div></div>
+      <div id="accessBox" class="access" hidden></div>
+      <div class="menuBtns">
+        <button class="btn primary big" id="btnPickGallery">Galerie-Ordner wählen …</button>
+        <button class="btn primary big" id="btnEnter">Galerie betreten</button>
+        <button class="btn" data-goto="sources">Meine Galerien</button>
+        <button class="btn" id="btnEditMenu">Galerie bearbeiten</button>
+        <button class="btn" data-goto="library">Dateien der Galerie</button>
+        <button class="btn" data-goto="export">Exportieren · iPad</button>
+        <button class="btn" data-goto="settings">Einstellungen</button>
+        <button class="btn" data-goto="help">Hilfe & Steuerung</button>
+      </div>
+      <div class="storageInfo small muted"></div>
+    </section>
+
+    <section class="page" data-page="exhibitions" hidden>
+      <div class="pageHead"><button class="back" data-goto="main">← Zurück</button><h2>Ausstellungen</h2></div>
+      <div id="exList"></div>
+      <div class="btnrow"><button class="btn" id="btnImportPkg">Paket importieren (.zip)</button></div>
+    </section>
+
+    <section class="page" data-page="sources" hidden>
+      <div class="pageHead"><button class="back" data-goto="main">← Zurück</button><h2>Meine Galerien</h2></div>
+      <p class="muted">Jede Galerie gehört zu genau einem Ordner und zeigt nur die Dateien darin. Lege neue 3D-Modelle, Videos oder Texte einfach in den Ordner – sie werden automatisch erkannt und aufgestellt. Gleiche Namen gehören zusammen: <code>Vase.glb</code> + <code>Vase.mp4</code> + <code>Vase.txt</code>.</p>
+      <div id="sourcesPane"></div>
+    </section>
+
+    <section class="page" data-page="library" hidden>
+      <div class="pageHead"><button class="back" data-goto="main">← Zurück</button><h2>Dateien der Galerie</h2></div>
+      <div id="menuLibrary"></div>
+    </section>
+
+    <section class="page" data-page="export" hidden>
+      <div class="pageHead"><button class="back" data-goto="main">← Zurück</button><h2>Exportieren</h2></div>
+      <div id="exportPane"></div>
+    </section>
+
+    <section class="page" data-page="settings" hidden>
+      <div class="pageHead"><button class="back" data-goto="main">← Zurück</button><h2>Einstellungen</h2></div>
+      <div id="settingsForm" class="form"></div>
+    </section>
+
+    <section class="page" data-page="help" hidden>
+      <div class="pageHead"><button class="back" data-goto="main">← Zurück</button><h2>Hilfe & Steuerung</h2></div>
+      <div class="help">
+        <div class="touchHelp"><h4>Auf dem Tablet</h4>
+        <table>
+          <tr><td>Mit einem Finger ziehen</td><td>umsehen</td></tr>
+          <tr><td>Auf den Boden tippen</td><td>dorthin gehen</td></tr>
+          <tr><td>Knopf „Gehen“ (rechts) halten</td><td>zum Zielpunkt in der Bildmitte laufen</td></tr>
+          <tr><td>Joystick unten rechts</td><td>gehen (nach oben = vorwärts)</td></tr>
+          <tr><td>Auf ein Objekt tippen</td><td>aus der Nähe ansehen – dort mit Fingern drehen, mit zwei Fingern zoomen</td></tr>
+          <tr><td>Video ansehen oder antippen</td><td>Video startet</td></tr>
+          <tr><td>Karte (links unten) antippen</td><td>Übersicht, im großen Plan: Tippen = dorthin springen</td></tr>
+        </table></div>
+        <h4>Im Museum (Besuchermodus)</h4>
+        <table>
+          <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / Pfeiltasten</td><td>gehen</td></tr>
+          <tr><td>Maus</td><td>umsehen (nach Klick ins Bild)</td></tr>
+          <tr><td><kbd>⇧ Shift</kbd></td><td>schneller gehen</td></tr>
+          <tr><td><kbd>Leertaste</kbd></td><td>springen</td></tr>
+          <tr><td><kbd>E</kbd> / linke Maustaste</td><td>Objekt ansehen, Video-Steuerung öffnen</td></tr>
+          <tr><td><kbd>X</kbd></td><td>zum Zielpunkt (Bildmitte) gehen · gedrückt halten = dem Blick folgen</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Maus freigeben, Fenster schließen</td></tr>
+          <tr><td><kbd>Tab</kbd></td><td>Maus-Modus: Ziehen = umsehen, Klick auf den Boden = hingehen</td></tr>
+          <tr><td><kbd>M</kbd> · <kbd>H</kbd> · <kbd>U</kbd></td><td>Karte · zum Eingang · Ton aus</td></tr>
+          <tr><td><kbd>B</kbd></td><td>Bearbeitungsmodus an/aus</td></tr>
+        </table>
+        <h4>Gamepad · VR-Brille</h4>
+        <table>
+          <tr><td>Linker Stick · rechter Stick</td><td>gehen · umsehen</td></tr>
+          <tr><td>Taste <kbd>X</kbd> (Gamepad) bzw. X/A am VR-Controller</td><td>zum Zielpunkt gehen (gedrückt halten = folgen)</td></tr>
+          <tr><td><kbd>A</kbd> · <kbd>B</kbd> · <kbd>Y</kbd></td><td>auswählen · zurück · Karte</td></tr>
+          <tr><td><kbd>LB</kbd>/<kbd>RB</kbd> · <kbd>RT</kbd> · Start</td><td>45° drehen · rennen · Menü</td></tr>
+        </table>
+        <p><b>Videos</b> starten, wenn du sie etwa zwei Sekunden lang ansiehst – ein Ring zeigt den Fortschritt. Schaust du vorher weg, beginnt er von vorne. Es läuft immer nur ein Video.</p>
+        <h4>Bearbeitungsmodus – wie bei den Sims</h4>
+        <table>
+          <tr><td>Bibliothek: Karte anklicken</td><td>Objekt hängt am Mauszeiger → im Raum klicken zum Aufstellen (<kbd>⇧</kbd>+Klick: gleich noch eins)</td></tr>
+          <tr><td>Objekt ziehen</td><td>in die Hand nehmen und verschieben – grün = passt, rot = geht nicht</td></tr>
+          <tr><td><kbd>,</kbd> <kbd>.</kbd> oder Mausrad (beim Tragen)</td><td>45° bzw. 15° drehen</td></tr>
+          <tr><td><kbd>Alt</kbd> halten</td><td>frei, ohne Raster</td></tr>
+          <tr><td><kbd>Esc</kbd> / Rechtsklick</td><td>abbrechen – das Objekt springt zurück</td></tr>
+          <tr><td>Doppelklick</td><td>ganze Einheit (Video + Modell) wählen</td></tr>
+          <tr><td>✥ ⟳ ⤢ in der Werkzeugleiste</td><td>Feinjustierung mit Anfassern (W/E/R)</td></tr>
+        </table>
+        <p>Im Reiter <b>Bauen</b>: <b>Raum ziehen</b> (auf dem Boden aufziehen – grenzt er an einen Raum, entsteht automatisch ein Durchgang), <b>Wand ziehen</b> (Stellwände), <b>Durchgang</b> (auf eine Wand klicken), <b>Boden</b> (Belag wählen, Raum anklicken), <b>Anpassen</b> (Raum verschieben oder an der Wand größer ziehen) und <b>Abriss</b>. Im Inspektor: 90° drehen (<kbd>[</kbd> <kbd>]</kbd>), spiegeln (<kbd>H</kbd>/<kbd>V</kbd>), ±10 % (<kbd>+</kbd>/<kbd>−</kbd>), Kippen, Umdrehen. <kbd>⌘/Strg+Z</kbd> rückgängig, <kbd>⌘/Strg+S</kbd> speichern.</p>
+        <h4>Galerien</h4>
+        <p>Beim Start ist die Galerie leer. Im Menü einen <b>Galerie-Ordner</b> wählen – alle 3D-Modelle, Videos und Texte darin werden automatisch aufgestellt und die Galerie wird im Ordner gespeichert. Jede Galerie sieht nur die Dateien ihres Ordners. Neue Dateien im Ordner werden nach wenigen Sekunden erkannt und aufgestellt.</p>
+        <h4>Infotexte</h4>
+        <p>Eine Textdatei mit dem gleichen Namen wie das Modell (z.&nbsp;B. <code>Vase.txt</code> neben <code>Vase.glb</code>) wird automatisch geladen und im Museum am Objektschild und in der Detailansicht gezeigt. Die erste Zeile wird zum Titel, wenn danach eine Leerzeile folgt. Im Editor lässt sich der Text pro Objekt überschreiben oder als Datei speichern.</p>
+        <h4>Starten & Speichern</h4>
+        <p><b>Empfohlen:</b> <code>start.command</code> (Mac) bzw. <code>start.bat</code> (Windows) – dann wird direkt im Projektordner gespeichert und alles funktioniert ohne Rückfragen. Direkt geöffnete <code>index.html</code>: in Chrome/Edge einmal den Projektordner (FAIR2026) freigeben (Speichern im Ordner möglich); in Safari/Firefox wird der Ordner nur gelesen und Ausstellungen werden im Browser gespeichert – über „Paket exportieren“ lassen sie sich sichern.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="loadingBar" hidden><i></i><span></span></div>
+<div id="toast" hidden></div>
+<div id="dropHint">Dateien hier ablegen zum Importieren</div>
+<div id="arOverlay" hidden><div class="arBar"><button data-ar="rot">⟳ Drehen</button><button data-ar="orig">1:1 / Anzeige</button><button data-ar="remove">Entfernen</button><button data-ar="close">Beenden</button></div></div>
+<div id="fatal" hidden><h2>Das Museum konnte nicht gestartet werden.</h2><p>Bitte einen aktuellen Browser (Chrome, Edge, Safari, Firefox) verwenden oder über start.command starten.</p><pre></pre></div>
+
+<input id="importInput" type="file" multiple hidden accept=".glb,.gltf,.obj,.mtl,.fbx,.stl,.ply,.spz,.splat,.ksplat,.usdz,.usd,.usda,.usdc,.dae,.3mf,.blend,.bin,.png,.jpg,.jpeg,.webp,.mp4,.m4v,.webm,.mov,.zip,video/*">
+<input id="pkgInput" type="file" hidden accept=".zip">
+<input id="dirPick" type="file" hidden webkitdirectory directory multiple>
+
+<script src="data/gallery.js"></script>
+<script src="app/museum.bundle.js"></script>
+</body>
+</html>

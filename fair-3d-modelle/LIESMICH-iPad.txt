@@ -1,0 +1,54 @@
+Digitales Museum · Galerie-Version „FAIR - 3D Modelle“ für das iPad
+==================================================
+
+Dieser Ordner ist eine abgeschlossene Web-App nur zum Ansehen (kein Bearbeiten).
+78 Medien, zusammen ca. 1069 MB. Nach dem einmaligen Laden läuft sie auf dem
+iPad komplett OFFLINE – auch im Flugmodus.
+
+SO KOMMT DIE GALERIE AUFS IPAD
+------------------------------
+Das iPad kann HTML-Dateien nicht direkt aus der Dateien-App starten. Darum wird der
+Ordner EINMAL auf einen Webserver mit https gelegt, auf dem iPad geöffnet und zum
+Home-Bildschirm hinzugefügt. Danach braucht das iPad keine Verbindung mehr.
+
+1. Ordner veröffentlichen (eine Möglichkeit wählen):
+   a) Eigener Webspace (z. B. der Speicherplatz einer vorhandenen Website):
+      Ordnerinhalt per FTP (z. B. mit Cyberduck oder FileZilla) in einen Unterordner
+      hochladen, z. B. https://deine-seite.de/galerie/
+   b) Netlify (kostenloses Konto): im Terminal in diesem Ordner
+         npx netlify-cli deploy --prod --dir .
+      (Das Ziehen auf netlify.com/drop ist für diese Größe nicht geeignet.)
+   c) GitHub Pages: Ordner in ein Repository laden, Pages aktivieren.
+   Wichtig: Die Adresse muss mit https:// beginnen.
+
+2. Auf dem iPad in Safari die Adresse öffnen.
+3. Teilen-Symbol → „Zum Home-Bildschirm“ → Hinzufügen.
+4. Die App vom Home-Bildschirm starten (nicht in Safari!) und im Startmenü
+   „Für Offline-Nutzung speichern“ tippen. Warten, bis 100 % erreicht sind
+   (WLAN, ca. 1069 MB).
+5. Test: Flugmodus einschalten, App neu öffnen – alles sollte laufen.
+
+ALS AUSSTELLUNGSGERÄT (KIOSK)
+-----------------------------
+• Einstellungen → Bedienungshilfen → Geführter Zugriff einschalten. In der App dreimal
+  die Seitentaste (bzw. Home-Taste) drücken → Starten. Das iPad bleibt dann in der App.
+• Einstellungen → Anzeige & Helligkeit → Automatische Sperre: Nie.
+• Nach einigen Minuten ohne Bedienung kehrt die Galerie automatisch zum Startbild zurück.
+
+BEDIENUNG AUF DEM IPAD
+----------------------
+• Mit einem Finger ziehen: umsehen
+• Auf den Boden tippen: dorthin gehen
+• Joystick unten rechts: gehen
+• Auf ein Objekt tippen: aus der Nähe ansehen (dort mit Fingern drehen/zoomen)
+• Videos starten, wenn man sie kurz anschaut, oder per Tippen.
+
+AKTUALISIEREN
+-------------
+Neue Galerie im Museum exportieren, den Ordner auf dem Server ersetzen und auf dem
+iPad die App einmal mit Internet öffnen und erneut „Für Offline-Nutzung speichern“ tippen.
+
+AUF DEM MAC TESTEN
+------------------
+Museum mit start.command starten und im Browser öffnen:
+http://127.0.0.1:8765/Digitales%20Museum/exports/<dieser Ordner>/index.html
